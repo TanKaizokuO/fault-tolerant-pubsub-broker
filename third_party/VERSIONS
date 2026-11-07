@@ -1,0 +1,20 @@
+# Vendored third-party single headers (pinned release tags)
+# Refresh by re-downloading the URLs below for the same tag and updating the SHA-256 values.
+
+cpp-httplib
+  file:     third_party/httplib.h
+  version:  0.65.0 (CPPHTTPLIB_VERSION)
+  tag:      v0.65.0
+  source:   https://github.com/yhirose/cpp-httplib/releases/tag/v0.65.0
+  download: https://raw.githubusercontent.com/yhirose/cpp-httplib/v0.65.0/httplib.h
+  license:  MIT (license text embedded in header)
+  sha256:   17d85dcf129d3cc67eefba846608016f43882c9de7fae811a930f9736a10eeaa
+
+nlohmann/json
+  file:     third_party/json.hpp
+  version:  3.12.0 (NLOHMANN_JSON_VERSION_MAJOR/MINOR/PATCH = 3/12/0)
+  tag:      v3.12.0
+  source:   https://github.com/nlohmann/json/releases/tag/v3.12.0
+  download: https://raw.githubusercontent.com/nlohmann/json/v3.12.0/single_include/nlohmann/json.hpp
+  license:  MIT (license text embedded in header)
+  sha256:   aaf127c04cb31c406e5b04a63f1ae89369fccde6d8fa7cdda1ed4f32dfc5de63
