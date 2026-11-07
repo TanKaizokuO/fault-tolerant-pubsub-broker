@@ -1,0 +1,17 @@
+# Local environments and secrets
+.venv/
+.env
+.env.*
+!.env.example
+
+# Agent folders
+.omp/
+.claude/
+
+# Caches and dependencies
+__pycache__/
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
