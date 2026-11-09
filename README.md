@@ -9,14 +9,24 @@ The spec is `docs/spec.md`. This README explains how to build, run, and watch th
 ## Architecture
 
 ```mermaid
-flowchart LR
-    P[publisher / curl] -->|POST /publish| B[broker :8080]
-    B -->|POST /event, sync| S1[S1 Python, sports :9001]
-    B -->|POST /event, sync| S2[S2 Python, news :9002]
-    B -->|POST /event, sync| S3[S3 C++, sports :9003]
-    S1 -->|POST /subscribe| B
-    S2 -->|POST /subscribe| B
-    S3 -->|POST /subscribe| B
+sequenceDiagram
+    participant P as Publisher / curl
+    participant B as Broker :8080
+    participant S1 as S1 Python<br/>sports :9001
+    participant S2 as S2 Python<br/>news :9002
+    participant S3 as S3 C++<br/>sports :9003
+    S1->>B: POST /subscribe
+    S2->>B: POST /subscribe
+    S3->>B: POST /subscribe
+    P->>B: POST /publish
+    Note over B,S3: Deliver synchronously to matching subscribers
+    B->>S1: POST /event (if selected)
+    S1-->>B: ack
+    B->>S2: POST /event (if selected)
+    S2-->>B: ack
+    B->>S3: POST /event (if selected)
+    S3-->>B: ack
+    B-->>P: delivery report
 ```
 
 - The broker is C++ (`broker/`), built with CMake. It uses cpp-httplib and nlohmann/json, vendored in `third_party/`.
@@ -32,11 +42,59 @@ flowchart LR
 
 ## Prerequisites
 
-- Linux with `g++` (C++17), `cmake` (3.16 or newer), `python3`, `tmux`, and `curl`.
+- Linux, or a Linux environment on Windows or macOS as described below.
+- `g++` with C++17 support, CMake 3.16 or newer, Python 3, tmux, and curl.
+
+On Debian or Ubuntu:
 
 ```bash
 sudo apt install g++ cmake python3 tmux curl
 ```
+
+### Windows
+
+Native Windows builds are not supported: the C++ code uses POSIX signal and
+time APIs, and the demo scripts require Bash and tmux. Use
+[WSL 2 with Ubuntu](https://learn.microsoft.com/windows/wsl/install):
+
+1. In an administrator PowerShell, run `wsl --install -d Ubuntu` and restart
+   Windows if prompted. Complete Ubuntu's first-run account setup.
+2. Open Ubuntu, clone this repository into its Linux filesystem, and `cd` into
+   the clone. Install the Debian/Ubuntu prerequisites above.
+3. Run `./scripts/run_all.sh`, then run `./scripts/demo.sh` in the publisher
+   pane. All commands and curl examples below run inside Ubuntu.
+
+### macOS
+
+Native macOS builds are not currently supported: the C++ subscriber uses
+`sigtimedwait`, which macOS does not provide. Run the Linux version with
+[Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
+instead:
+
+1. Start Docker Desktop. In Terminal, `cd` to a fresh clone of this repository.
+   Remove or move any existing `build` directory from a different machine or
+   operating system before building; CMake caches absolute paths.
+2. Start an interactive Ubuntu container with the repository mounted:
+
+   ```bash
+   docker run --rm -it -v "$PWD:/workspace" -w /workspace ubuntu:24.04 bash
+   ```
+
+3. Inside the container, install the prerequisites and start the demo:
+
+   ```bash
+   apt update && apt install -y g++ cmake python3 tmux curl
+   ./scripts/run_all.sh
+   ```
+
+4. In the publisher pane, run `./scripts/demo.sh`. Run the commands and curl
+   examples below inside the container. To stop, run `tmux kill-session -t pubsub`
+   and then `exit` the container. The container is removed on exit; installed
+   packages do not persist, but files in the mounted repository do.
+
+The container runs as root, so generated files in the mounted clone may be
+owned by root. Ports are not published to the macOS host; use curl inside the
+container.
 
 ## Build
 
